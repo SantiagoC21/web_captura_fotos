@@ -1,4 +1,3 @@
-<!-- src/views/CameraView.vue -->
 <template>
   <div class="phone-frame camera-container">
     <span class="step-indicator">3 de 4</span>
@@ -30,16 +29,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { useTemplateRef, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import OvalOverlay from '../components/OvalOverlay.vue'
 import { useCameraCapture } from '../composables/useCameraCapture'
 import { useCameraStore } from '../stores/camera'
 
+const videoEl = useTemplateRef<HTMLVideoElement>('videoEl')
+const canvasEl = useTemplateRef<HTMLCanvasElement>('canvasEl')
+
 const router = useRouter()
 const cameraStore = useCameraStore()
-const { rostroValido, errorMessage, startCamera, stopCamera } =
-  useCameraCapture()
+const { rostroValido, errorMessage, startCamera, stopCamera } = useCameraCapture(videoEl, canvasEl)
 
 watch(
   () => cameraStore.totalFotos,

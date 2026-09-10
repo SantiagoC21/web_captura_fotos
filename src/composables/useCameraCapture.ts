@@ -1,16 +1,17 @@
 // src/composables/useCameraCapture.ts
-import { ref, onUnmounted } from 'vue'
+import { ref, type Ref } from 'vue'
 import { FaceDetector, FilesetResolver } from '@mediapipe/tasks-vision'
 import { useCameraStore } from '../stores/camera'
 
 const TOTAL_FOTOS = 10
-const INTERVALO_CAPTURA_MS = 800 // tiempo entre capturas automáticas
+const INTERVALO_CAPTURA_MS = 800
 
-export function useCameraCapture() {
+export function useCameraCapture(
+  videoEl: Readonly<Ref<HTMLVideoElement | null>>,
+  canvasEl: Readonly<Ref<HTMLCanvasElement | null>>
+) {
   const cameraStore = useCameraStore()
 
-  const videoEl = ref<HTMLVideoElement | null>(null)
-  const canvasEl = ref<HTMLCanvasElement | null>(null)
   const rostroValido = ref(false)
   const capturando = ref(false)
   const errorMessage = ref<string | null>(null)
@@ -58,7 +59,6 @@ export function useCameraCapture() {
     const now = performance.now()
     const result = faceDetector.detectForVideo(videoEl.value, now)
 
-    // Consideramos "válido" si hay exactamente un rostro detectado
     rostroValido.value = result.detections.length === 1
 
     if (
@@ -104,11 +104,7 @@ export function useCameraCapture() {
     faceDetector?.close()
   }
 
-  onUnmounted(stopCamera)
-
   return {
-    videoEl,
-    canvasEl,
     rostroValido,
     errorMessage,
     startCamera,
