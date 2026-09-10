@@ -38,7 +38,7 @@ import { useCameraStore } from '../stores/camera'
 
 const router = useRouter()
 const cameraStore = useCameraStore()
-const { videoEl, canvasEl, rostroValido, errorMessage, startCamera, stopCamera } =
+const { rostroValido, errorMessage, startCamera, stopCamera } =
   useCameraCapture()
 
 watch(
