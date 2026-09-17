@@ -22,9 +22,6 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  rostroValido: boolean
-}>()
 </script>
 
 <style scoped>

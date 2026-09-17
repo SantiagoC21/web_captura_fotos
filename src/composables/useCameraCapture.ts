@@ -1,6 +1,5 @@
 // src/composables/useCameraCapture.ts
 import { ref, type Ref } from 'vue'
-import { FaceDetector, FilesetResolver } from '@mediapipe/tasks-vision'
 import { useCameraStore } from '../stores/camera'
 
 const TOTAL_FOTOS = 10
@@ -12,15 +11,14 @@ export function useCameraCapture(
 ) {
   const cameraStore = useCameraStore()
 
-  const rostroValido = ref(false)
   const capturando = ref(false)
   const errorMessage = ref<string | null>(null)
 
   let stream: MediaStream | null = null
-  let faceDetector: FaceDetector | null = null
-  let detectionLoopId: number | null = null
-  let ultimaCaptura = 0
-
+  
+  let intervalId: number | null = null
+  
+  {/*
   async function initFaceDetector() {
     const vision = await FilesetResolver.forVisionTasks(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
@@ -34,6 +32,7 @@ export function useCameraCapture(
       runningMode: 'VIDEO',
     })
   }
+  */}
 
   async function startCamera() {
     try {
@@ -45,35 +44,23 @@ export function useCameraCapture(
         videoEl.value.srcObject = stream
         await videoEl.value.play()
       }
-      await initFaceDetector()
-      detectionLoop()
+      iniciarCapturaAutomatica()
     } catch (err) {
       errorMessage.value = 'No se pudo acceder a la cámara.'
       console.error(err)
     }
   }
 
-  function detectionLoop() {
-    if (!videoEl.value || !faceDetector) return
-
-    const now = performance.now()
-    const result = faceDetector.detectForVideo(videoEl.value, now)
-
-    rostroValido.value = result.detections.length === 1
-
-    if (
-      rostroValido.value &&
-      !capturando.value &&
-      cameraStore.totalFotos < TOTAL_FOTOS &&
-      now - ultimaCaptura > INTERVALO_CAPTURA_MS
-    ) {
-      capturarFrame()
-      ultimaCaptura = now
-    }
-
-    if (cameraStore.totalFotos < TOTAL_FOTOS) {
-      detectionLoopId = requestAnimationFrame(detectionLoop)
-    }
+  function iniciarCapturaAutomatica() {
+    intervalId = window.setInterval(() => {
+      if (cameraStore.totalFotos >= TOTAL_FOTOS) {
+        if (intervalId) clearInterval(intervalId)
+        return
+      }
+      if (!capturando.value) {
+        capturarFrame()
+      }
+    }, INTERVALO_CAPTURA_MS)
   }
 
   function capturarFrame() {
@@ -99,13 +86,11 @@ export function useCameraCapture(
   }
 
   function stopCamera() {
-    if (detectionLoopId) cancelAnimationFrame(detectionLoopId)
+    if (intervalId) clearInterval(intervalId)
     stream?.getTracks().forEach((track) => track.stop())
-    faceDetector?.close()
   }
 
   return {
-    rostroValido,
     errorMessage,
     startCamera,
     stopCamera,
