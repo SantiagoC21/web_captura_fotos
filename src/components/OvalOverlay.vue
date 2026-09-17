@@ -15,7 +15,7 @@
     <ellipse
       cx="200" cy="230" rx="110" ry="150"
       fill="none"
-      :stroke="rostroValido ? '#4ade80' : '#ffffff'"
+      stroke="#ffffff"
       stroke-width="4"
     />
   </svg>

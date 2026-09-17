@@ -9,7 +9,7 @@
 
     <div class="video-wrapper">
       <video ref="videoEl" autoplay playsinline muted class="video-feed"></video>
-      <OvalOverlay :rostro-valido="rostroValido" />
+      <OvalOverlay />
     </div>
 
     <canvas ref="canvasEl" style="display: none"></canvas>
@@ -23,7 +23,6 @@
       </div>
     </div>
 
-    <p v-if="!rostroValido" class="hint">Ubica tu rostro dentro del óvalo</p>
     <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
   </div>
 </template>
@@ -31,7 +30,7 @@
 <script setup lang="ts">
 import { useTemplateRef, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import OvalOverlay from '../components/OvalOverlay.vue'
+import OvalOverlay from '../components/OvalOverlay.vue' 
 import { useCameraCapture } from '../composables/useCameraCapture'
 import { useCameraStore } from '../stores/camera'
 
@@ -40,14 +39,14 @@ const canvasEl = useTemplateRef<HTMLCanvasElement>('canvasEl')
 
 const router = useRouter()
 const cameraStore = useCameraStore()
-const { rostroValido, errorMessage, startCamera, stopCamera } = useCameraCapture(videoEl, canvasEl)
+const { errorMessage, startCamera, stopCamera } = useCameraCapture(videoEl, canvasEl)
 
 watch(
   () => cameraStore.totalFotos,
   (total) => {
     if (total >= 10) {
       stopCamera()
-      router.push('/preview')
+      router.replace('/enviando')
     }
   }
 )
