@@ -12,7 +12,16 @@
       <p>Este link no tiene un aula asignada.</p>
       <p>Pide el link o QR correcto a tu docente.</p>
     </div>
-
+    <div v-if="yaCompleto" class="aula-error">
+      <p>Ya completaste tu registro de fotos anteriormente.</p>
+      <p>¿Deseas volver a tomarte las fotos? Esto borrará las anteriores.</p>
+      <button class="btn-continuar" :disabled="reintentando" @click="confirmarRetake">
+        {{ reintentando ? 'Reiniciando…' : 'Sí, volver a tomarme las fotos' }}
+      </button>
+      <button class="btn-continuar" style="margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-h);" @click="cancelarRetake">
+        Cancelar
+      </button>
+    </div>
     <form v-else class="form-block" @submit.prevent="continuar" novalidate>
       <div class="aula-badge">Aula: <strong>{{ aula }}</strong></div>
 
@@ -72,9 +81,14 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Input } from '@/components/ui/input'
-import { verificarPersona, crearPersona } from '../api/service'
+import { verificarPersona, crearPersona, resetearFotos } from '../api/service'
 import { useCameraStore } from '../stores/camera'
 import { validarCodigo, validarNombreSegmento } from '../utils/validators'
+
+const yaCompleto = ref(false)
+const personaExistenteId = ref<number | null>(null)
+const reintentando = ref(false)
+
 
 const route = useRoute()
 const router = useRouter()
@@ -112,8 +126,15 @@ async function continuar() {
 
   try {
     const verificacion = await verificarPersona(codigoNormalizado)
-    
+
     if (verificacion.existe && verificacion.persona_id) {
+      if (verificacion.total_fotos >= 10) {
+        // Ya completó su registro antes: mostramos la opción de retake en vez de continuar.
+        personaExistenteId.value = verificacion.persona_id
+        yaCompleto.value = true
+        cargando.value = false
+        return
+      }
       cameraStore.setPersona(verificacion.persona_id, codigoNormalizado, `${apellidos.value} ${nombres.value}`, aula.value)
     } else {
       const nuevaPersona = await crearPersona(codigoNormalizado, apellidos.value.trim(), nombres.value.trim(), aula.value)
@@ -128,6 +149,35 @@ async function continuar() {
     cargando.value = false
   }
 }
+
+async function confirmarRetake() {
+  if (personaExistenteId.value === null) return
+
+  reintentando.value = true
+  error.value = null
+
+  try {
+    await resetearFotos(personaExistenteId.value)
+    cameraStore.setPersona(
+      personaExistenteId.value,
+      codigo.value.trim().toUpperCase(),
+      `${apellidos.value} ${nombres.value}`,
+      aula.value
+    )
+    router.push('/permisos')
+  } catch (err) {
+    error.value = 'No se pudo reiniciar el registro. Intenta de nuevo.'
+    console.error(err)
+  } finally {
+    reintentando.value = false
+  }
+}
+
+function cancelarRetake() {
+  yaCompleto.value = false
+  personaExistenteId.value = null
+}
+
 </script>
 
 <style scoped>

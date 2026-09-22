@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import fs from 'fs'
 
 const BASE_URL = 'https://faceuni.up.railway.app'
-const AULAS = ['PRUEBA1', 'PRUEBA2', 'PRUEBA3'] // ← ajusta a tu lista real
+const AULAS = ['BIC01W'] // ← ajusta a tu lista real
 
 const outDir = './qrs'
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)

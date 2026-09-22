@@ -37,3 +37,7 @@ export async function enviarFoto(personaId: number, imagen: Blob): Promise<Captu
   )
   return data
 }
+
+export async function resetearFotos(personaId: number): Promise<void> {
+  await apiClient.delete(`/capturas/reset/${personaId}`)
+}
