@@ -49,9 +49,9 @@ onMounted(async () => {
   }
 
   try {
-    for (const foto of cameraStore.fotos) {
-      await enviarFoto(cameraStore.personaId, foto)
-    }
+    await Promise.all(
+      cameraStore.fotos.map((foto) => enviarFoto(cameraStore.personaId, foto))
+    )
     estado.value = 'exito'
     setTimeout(() => {
       cameraStore.resetTodo()
